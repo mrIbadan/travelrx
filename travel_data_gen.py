@@ -11,6 +11,7 @@ import hashlib
 import pycountry
 from faker import Faker
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 def google_drive_read(url, **kwargs):
     """
@@ -100,10 +101,10 @@ def generate_credit_scores(occupations, occupation_scores):
     """Generate credit scores based on occupations."""
     return [np.random.randint(occupation_scores[occupation][0], occupation_scores[occupation][1] + 1) for occupation in occupations]
 
-def calculate_age(dob):
-    """Calculate age from date of birth."""
-    today = pd.to_datetime('today')
-    return (today - dob).days // 365
+#def calculate_age(dob):
+#    """Calculate age from date of birth."""
+#    today = pd.to_datetime('today')
+#    return (today - dob).days // 365
 
 # Generate synthetic travel insurance quote data
 def generate_travel_quote_data(geo_df, n_rows=10000):
@@ -133,17 +134,28 @@ def generate_travel_quote_data(geo_df, n_rows=10000):
     
     # Define the current date
     current_date = datetime.now()
-    
+
     # Define the age limits
     min_age = 16
     max_age = 77
     
-    # Calculate the maximum and minimum dates for the traveller's date of birth
-    max_dob = current_date - timedelta(days=min_age * 365)  # Maximum DOB for age 16
-    min_dob = current_date - timedelta(days=max_age * 365)  # Minimum DOB for age 77
+    # Current date
+    current_date = datetime.now()
     
-    # Generate random dates of birth within the specified range
-    traveller_1_dob = pd.to_datetime(np.random.randint(min_dob.value, max_dob.value, n_rows))
+    # DOB bounds
+    # Convert to numeric (timestamps in ns)
+    min_ts = pd.Timestamp(min_dob).value // 10**9
+    max_ts = pd.Timestamp(max_dob).value // 10**9
+
+    # Generate random DOBs
+    random_timestamps = np.random.randint(min_ts, max_ts, n_rows)
+    traveller_1_dob = pd.to_datetime(random_timestamps, unit='s')
+    
+    # Calculate age function
+    def calculate_age(dobs):
+        today = datetime.today()
+        return [(today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))) for dob in dobs]
+    
     ages = calculate_age(traveller_1_dob)
 
     df = pd.DataFrame({
