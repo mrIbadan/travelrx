@@ -10,7 +10,7 @@ import uuid
 import hashlib
 import pycountry
 from faker import Faker
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 def google_drive_read(url, **kwargs):
     """
@@ -131,8 +131,19 @@ def generate_travel_quote_data(geo_df, n_rows=10000):
     random_occupations = np.random.choice(occupations, size=n_rows)
     credit_scores = generate_credit_scores(random_occupations, occupation_scores)
     
-    traveller_1_dob = pd.to_datetime('2000-01-01') + pd.to_timedelta(np.random.randint(0, 365*25, n_rows), unit='D')
-    ages = calculate_age(traveller_1_dob)
+    # Define the current date
+    current_date = datetime.now()
+    
+    # Define the age limits
+    min_age = 16
+    max_age = 77
+    
+    # Calculate the maximum and minimum dates for the traveller's date of birth
+    max_dob = current_date - timedelta(days=min_age * 365)  # Maximum DOB for age 16
+    min_dob = current_date - timedelta(days=max_age * 365)  # Minimum DOB for age 77
+    
+    # Generate random dates of birth within the specified range
+    traveller_1_dob = pd.to_datetime(np.random.randint(min_dob.value, max_dob.value, n_rows))
     
     df = pd.DataFrame({
         "quote_id": [str(uuid.uuid4()) for _ in range(n_rows)],
