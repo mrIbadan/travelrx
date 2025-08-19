@@ -144,7 +144,8 @@ def generate_travel_quote_data(geo_df, n_rows=10000):
     
     # Generate random dates of birth within the specified range
     traveller_1_dob = pd.to_datetime(np.random.randint(min_dob.value, max_dob.value, n_rows))
-    
+    ages = calculate_age(traveller_1_dob)
+
     df = pd.DataFrame({
         "quote_id": [str(uuid.uuid4()) for _ in range(n_rows)],
         "customer_id": [generate_customer_id() for _ in range(n_rows)],  # Generate customer IDs
